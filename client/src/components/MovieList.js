@@ -4,10 +4,30 @@ import Movie from "./Movie";
 import { connect } from "react-redux";
 import * as actions from '../actions';
 import _ from "lodash";
+import InfiniteScroll from 'react-infinite-scroller';
 
-class MovieList extends Component {  
-  componentDidMount () {
-    this.props.fetchMovies()
+class MovieList extends Component {
+  constructor() {
+    super();
+
+    this.loadItems = this.loadItems.bind(this);
+
+    this.state = {
+      hasMoreItems: true
+    };
+  }
+  
+  //This was removed at the end because of our infinite scroll component
+  // componentDidMount() {
+  //   this.props.fetchMovies()
+  // }
+
+  loadItems(page) {
+    if (page < this.props.totalPages || this.props.totalPages === 0) {
+      this.props.fetchMovies(page)
+    } else {
+      this.setState({ hasMoreItems: false })
+    }
   }
 
   render() {
@@ -16,15 +36,17 @@ class MovieList extends Component {
     });
 
     return (
-      <MovieGrid>
-        {movies}
-      </MovieGrid>
+      <InfiniteScroll loadMore={this.loadItems} pageStart={0} hasMore={this.state.hasMoreItems}>
+        <MovieGrid>
+          {movies}
+        </MovieGrid>
+      </InfiniteScroll>
     );
   }
 }
 
-function mapStateToProps (state) {
-  return { movies: state.movies, totalPages: state.total_pages }
+function mapStateToProps(state) {
+  return { movies: state.movies, order: state.movies_order, totalPages: state.total_pages }
 };
 
 export default connect(
